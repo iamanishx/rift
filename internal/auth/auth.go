@@ -17,10 +17,10 @@ type Claims struct {
 
 func Setup(router *gin.Engine) {
 	goth.UseProviders(
-		google.New(os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), "http://localhost:8080/auth/google/callback"),
+		google.New(os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_CALLBACK_URL")),
 	)
 }
-
+	
 func GenerateJWT(userID string) (string, error) {
 	claims := Claims{
 		UserID: userID,
