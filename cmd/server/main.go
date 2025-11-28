@@ -9,7 +9,6 @@ import (
 	"github.com/iamanishx/xserve/internal/db"
 	"github.com/iamanishx/xserve/internal/web"
 	"github.com/joho/godotenv"
-	csrf "github.com/utrack/gin-csrf"
 )
 
 func main() {
@@ -32,13 +31,6 @@ func main() {
 
 	authorized := r.Group("/")
 	authorized.Use(auth.AuthMiddleware())
-	authorized.Use(csrf.Middleware(csrf.Options{
-		Secret: os.Getenv("SESSION_SECRET"),
-		ErrorFunc: func(c *gin.Context) {
-			c.String(400, "CSRF token mismatch")
-			c.Abort()
-		},
-	}))
 	{
 		authorized.GET("/dashboard", web.Dashboard)
 		authorized.POST("/upload", web.Upload)

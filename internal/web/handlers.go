@@ -4,12 +4,11 @@ import (
 	"io"
 	"time"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/iamanishx/xserve/internal/auth"
 	"github.com/iamanishx/xserve/internal/db"
 	"github.com/iamanishx/xserve/internal/engine"
 	"github.com/markbates/goth/gothic"
-	csrf "github.com/utrack/gin-csrf"
 )
 
 func AuthCallback(c *gin.Context) {
@@ -35,10 +34,13 @@ func AuthCallback(c *gin.Context) {
 		return
 	}
 
-	s := sessions.Default(c)
-	s.Set("user_id", u.ID)
-	s.Save()
+	token, err := auth.GenerateJWT(u.ID)
+	if err != nil {
+		c.String(500, "Token generation failed")
+		return
+	}
 
+	c.SetCookie("auth_token", token, 30*24*60*60, "/", "", false, true)
 	c.Redirect(302, "/dashboard")
 }
 
@@ -50,12 +52,10 @@ func AuthLogin(c *gin.Context) {
 }
 
 func Dashboard(c *gin.Context) {
-	s := sessions.Default(c)
-	uid := s.Get("user_id").(string)
+	uid := c.GetString("user_id")
 	user, _ := db.GetUser(uid)
 	c.HTML(200, "dashboard.html", gin.H{
 		"User": user,
-		"CSRF": csrf.GetToken(c),
 	})
 }
 
@@ -71,8 +71,7 @@ func Upload(c *gin.Context) {
 		fileMap[file.Filename] = content
 	}
 
-	s := sessions.Default(c)
-	uid := s.Get("user_id").(string)
+	uid := c.GetString("user_id")
 
 	if err := engine.BuildSite(uid, fileMap); err != nil {
 		c.String(500, "Build failed")
