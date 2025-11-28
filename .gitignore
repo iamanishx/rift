@@ -1,3 +1,6 @@
 .env
 run.sh
 server.exe
+./data/*
+./data
+data/*
