@@ -1,36 +1,286 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - GoSSG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0f0f11; --fg: #e0e0e0; --accent: #6c5ce7; --card: #18181b; }
-        body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: var(--card); padding: 2rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
-        h1 { margin-bottom: 0.5rem; font-weight: 600; }
-        p { color: #888; margin-bottom: 2rem; }
-        .btn { background: var(--accent); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 500; transition: opacity 0.2s; width: 100%; }
-        .btn:hover { opacity: 0.9; }
-        input[type="file"] { margin-bottom: 1.5rem; width: 100%; }
-        .avatar { width: 64px; height: 64px; border-radius: 50%; margin-bottom: 1rem; }
-        .logout { display: block; margin-top: 1rem; color: #666; text-decoration: none; font-size: 0.9rem; }
+        :root {
+            --bg: #000000;
+            --fg: #ffffff;
+            --gray: #888888;
+            --border: #333333;
+            --button-bg: #ffffff;
+            --button-fg: #000000;
+            --hover-bg: #111111;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--fg);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .header {
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-name {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+        }
+
+        .logout {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-left: 1rem;
+            transition: color 0.2s;
+        }
+
+        .logout:hover {
+            color: var(--fg);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .welcome {
+            margin-bottom: 2rem;
+        }
+
+        .welcome h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.04em;
+        }
+
+        .welcome p {
+            color: var(--gray);
+            font-size: 1rem;
+        }
+
+        .card {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .upload-zone {
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--gray);
+            background: var(--hover-bg);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: var(--button-bg);
+            color: var(--button-fg);
+            border: 1px solid var(--button-bg);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            background: #333;
+            border-color: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .file-list {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .file-item {
+            padding: 8px 0;
+            color: var(--gray);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .site-link-container {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .site-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--fg);
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .site-link:hover {
+            text-decoration: underline;
+        }
+
+        .site-url {
+            color: var(--gray);
+            font-size: 0.85rem;
+            font-family: monospace;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <img src="{{ .User.AvatarURL }}" alt="Avatar" class="avatar">
-        <h1>Welcome, {{ .User.Name }}</h1>
-        <p>Upload your Markdown files to publish.</p>
-        
-        <form action="/upload" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="_csrf" value="{{ .CSRF }}">
-            <input type="file" name="files" multiple required>
-            <button type="submit" class="btn">Publish Site</button>
-        </form>
 
-        <a href="/sites/{{ .User.ID }}/" target="_blank" style="display:block; margin-top: 1rem; color: var(--accent);">View Your Site</a>
-        <a href="/logout" class="logout">Logout</a>
+<body>
+    <div class="header">
+        <div class="logo">𝓻𝓲𝓯𝓽</div>
+        <div class="user-info">
+            <span class="user-name">{{ .User.Name }}</span>
+            <img src="{{ .User.AvatarURL }}" alt="Avatar" class="avatar">
+            <a href="/logout" class="logout">Logout</a>
+        </div>
     </div>
+
+    <div class="container">
+        <div class="welcome">
+            <p>Manage your static site deployments.</p>
+        </div>
+
+        <div class="card">
+            <h2>Deploy New Version</h2>
+            <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <input type="hidden" name="_csrf" value="{{ .CSRF }}">
+                <label for="fileInput" class="upload-zone">
+                    <div style="font-weight: 500; margin-bottom: 0.5rem;">Select Markdown files</div>
+                    <div style="color: var(--gray); font-size: 0.9rem;">Drag and drop or click to browse</div>
+                </label>
+                <input type="file" id="fileInput" name="files" multiple accept=".md" required>
+                <div id="fileList" class="file-list" style="display: none;"></div>
+                <button type="submit" class="btn" id="uploadBtn" style="margin: 0 auto; display: block; width: 70%;"
+                    disabled>Deploy</button>
+            </form>
+
+            <div class="site-link-container">
+                <a href="/sites/{{ .User.ID }}/" target="_blank" class="site-link">
+                    Visit Your Live Sites
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadZone = document.querySelector('.upload-zone');
+
+        fileInput.addEventListener('change', function () {
+            if (this.files.length > 0) {
+                fileList.style.display = 'block';
+                fileList.innerHTML = '<div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #fff;">Selected files:</div>';
+                Array.from(this.files).forEach(file => {
+                    fileList.innerHTML += `
+                        <div class="file-item">
+                            📄 ${file.name}
+                        </div>`;
+                });
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = `Deploy ${this.files.length} File${this.files.length > 1 ? 's' : ''}`;
+            }
+        });
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#fff';
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.style.borderColor = '#333';
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#333';
+            fileInput.files = e.dataTransfer.files;
+            fileInput.dispatchEvent(new Event('change'));
+        });
+    </script>
 </body>
+
 </html>

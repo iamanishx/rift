@@ -24,6 +24,9 @@ func main() {
 	
 	auth.Setup(r)
 
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(200, "login.html", nil)
+	})
 	r.GET("/auth/google", web.AuthLogin)
 	r.GET("/auth/google/callback", web.AuthCallback)
 

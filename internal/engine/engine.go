@@ -107,6 +107,16 @@ func BuildSite(userID string, files map[string][]byte) error {
 		return <-errChan
 	}
 
+	entries, err := os.ReadDir(outDir)
+	if err == nil {
+		fileList = []string{}
+		for _, entry := range entries {
+			if !entry.IsDir() && filepath.Ext(entry.Name()) == ".html" && entry.Name() != "index.html" {
+				fileList = append(fileList, entry.Name())
+			}
+		}
+	}
+
 	indexHTML := `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Your Site</title><style>body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:20px}h1{color:#333}ul{list-style:none;padding:0}li{margin:10px 0}a{color:#6c5ce7;text-decoration:none;font-size:18px}a:hover{text-decoration:underline}</style></head><body><h1>Your Pages</h1><ul>`
 	for _, f := range fileList {
 		indexHTML += `<li><a href="` + f + `">` + f + `</a></li>`
