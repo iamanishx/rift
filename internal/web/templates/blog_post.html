@@ -169,7 +169,7 @@
 
         .content pre code {
             display: block;
-           .25rem  padding: 11.5rem;
+            padding: 1.25rem 1.5rem;
             font-size: 0.875rem;
             line-height: 1.7;
             background: none;
@@ -335,7 +335,7 @@
             </header>
 
             <div class="content">
-                {{ .Content | renderMarkdown }}
+                {{ .Content }}
             </div>
         </article>
 
@@ -350,8 +350,8 @@
                 </div>
             </div>
             <div class="share-buttons">
-                <a href="https://twitter.com/intent/tweet?text={{ .Post.Title }}&url={{ .FullURL }}" target="_blank" class="share-btn">Share on Twitter</a>
-                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ .FullURL }}" target="_blank" class="share-btn">Share on LinkedIn</a>
+                <a href="https://twitter.com/intent/tweet?text={{ .Post.Title | urlquery }}&url={{ .FullURL | urlquery }}" target="_blank" rel="noopener noreferrer" class="share-btn">Share on Twitter</a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ .FullURL | urlquery }}" target="_blank" rel="noopener noreferrer" class="share-btn">Share on LinkedIn</a>
             </div>
         </footer>
     </div>

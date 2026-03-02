@@ -117,8 +117,15 @@ func BuildSite(userID string, files map[string][]byte) error {
 					errChan <- err
 					return
 				}
-				buf2.WriteTo(f)
-				f.Close()
+				defer func() {
+					if cerr := f.Close(); cerr != nil {
+						errChan <- cerr
+					}
+				}()
+				if _, err := buf2.WriteTo(f); err != nil {
+					errChan <- err
+					return
+				}
 			}
 		}(name, content)
 

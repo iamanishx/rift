@@ -42,8 +42,8 @@ func main() {
 	r.GET("/auth/google", web.AuthLogin)
 	r.GET("/auth/google/callback", web.AuthCallback)
 
-	r.GET("/:username", web.BlogIndex)
-	r.GET("/:username/:slug", web.BlogPost)
+	r.GET("/:userID", web.BlogIndex)
+	r.GET("/:userID/:slug", web.BlogPost)
 
 	authorized := r.Group("/")
 	authorized.Use(auth.AuthMiddleware())

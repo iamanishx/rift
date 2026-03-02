@@ -9,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iamanishx/xserve/internal/db"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func CreatePost(c *gin.Context) {
@@ -27,8 +26,8 @@ func CreatePost(c *gin.Context) {
 	}
 
 	slug := generateSlug(input.Title)
-	exists, _ := db.GetPostBySlug(uid, slug)
-	if exists != nil {
+	exists, err := db.GetPostBySlug(uid, slug)
+	if err == nil && exists != nil {
 		slug = slug + "-" + time.Now().Format("20060102150405")
 	}
 
@@ -157,9 +156,9 @@ func ToggleVisibility(c *gin.Context) {
 }
 
 func GetPublicPosts(c *gin.Context) {
-	username := c.Param("username")
+	userID := c.Param("userID")
 
-	user, err := db.GetUser(username)
+	user, err := db.GetUser(userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
@@ -178,10 +177,10 @@ func GetPublicPosts(c *gin.Context) {
 }
 
 func GetPublicPost(c *gin.Context) {
-	username := c.Param("username")
+	userID := c.Param("userID")
 	slug := c.Param("slug")
 
-	user, err := db.GetUser(username)
+	user, err := db.GetUser(userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return

@@ -86,7 +86,19 @@ func GetPost(id string) (*Post, error) {
 func GetPostBySlug(userID, slug string) (*Post, error) {
 	var post Post
 	err := database.Collection("posts").FindOne(context.Background(), bson.M{"user_id": userID, "slug": slug}).Decode(&post)
-	return &post, err
+	if err != nil {
+		return nil, err
+	}
+	return &post, nil
+}
+
+func GetPublicPostBySlug(userID, slug string) (*Post, error) {
+	var post Post
+	err := database.Collection("posts").FindOne(context.Background(), bson.M{"user_id": userID, "slug": slug, "is_public": true}).Decode(&post)
+	if err != nil {
+		return nil, err
+	}
+	return &post, nil
 }
 
 func GetPublicPostBySlug(userID, slug string) (*Post, error) {

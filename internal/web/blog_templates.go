@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/iamanishx/xserve/internal/db"
 	"github.com/iamanishx/xserve/internal/engine"
 	"github.com/yuin/goldmark"
@@ -106,9 +107,9 @@ type BlogPostData struct {
 }
 
 func BlogIndex(c *gin.Context) {
-	username := c.Param("username")
+	userID := c.Param("userID")
 
-	user, err := db.GetUser(username)
+	user, err := db.GetUser(userID)
 	if err != nil {
 		c.String(404, "User not found")
 		return
@@ -128,10 +129,10 @@ func BlogIndex(c *gin.Context) {
 }
 
 func BlogPost(c *gin.Context) {
-	username := c.Param("username")
+	userID := c.Param("userID")
 	slug := c.Param("slug")
 
-	user, err := db.GetUser(username)
+	user, err := db.GetUser(userID)
 	if err != nil {
 		c.String(404, "User not found")
 		return
@@ -171,10 +172,11 @@ func BlogPostPreview(c *gin.Context) {
 		return
 	}
 
-	content := renderMarkdown(post.Content)
+	user, _ := db.GetUser(uid)
+	content := RenderMarkdown(post.Content)
 
 	data := BlogPostData{
-		User:    nil,
+		User:    user,
 		Post:    post,
 		Content: content,
 		FullURL: "",
@@ -184,6 +186,6 @@ func BlogPostPreview(c *gin.Context) {
 }
 
 func BuildPost(userID string, post *db.Post) error {
-	content := renderMarkdown(post.Content)
+	content := RenderMarkdown(post.Content)
 	return engine.BuildPublicPost(userID, post.Slug, post.Title, string(content))
 }

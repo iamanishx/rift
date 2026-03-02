@@ -26,12 +26,16 @@ func NewR2Client() (*R2Client, error) {
 	secretKey := os.Getenv("R2_SECRET_KEY")
 	bucket := os.Getenv("R2_BUCKET_NAME")
 	publicURL := os.Getenv("R2_PUBLIC_URL")
+	region := os.Getenv("R2_REGION")
+	if region == "" {
+		region = "auto"
+	}
 
 	if accountID == "" || accessKey == "" || secretKey == "" || bucket == "" {
 		return nil, fmt.Errorf("R2 configuration missing")
 	}
 
-	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, r string, options ...interface{}) (aws.Endpoint, error) {
 		return aws.Endpoint{
 			URL: fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountID),
 		}, nil
@@ -39,6 +43,7 @@ func NewR2Client() (*R2Client, error) {
 
 	awsCfg, err := config.LoadDefaultConfig(context.Background(),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
+		config.WithRegion(region),
 		config.WithEndpointResolverWithOptions(customResolver),
 	)
 	if err != nil {
@@ -74,6 +79,7 @@ func (r *R2Client) Download(ctx context.Context, key string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	return io.ReadAll(resp.Body)
 }
 
