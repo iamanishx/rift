@@ -101,12 +101,6 @@ func GetPublicPostBySlug(userID, slug string) (*Post, error) {
 	return &post, nil
 }
 
-func GetPublicPostBySlug(userID, slug string) (*Post, error) {
-	var post Post
-	err := database.Collection("posts").FindOne(context.Background(), bson.M{"user_id": userID, "slug": slug, "is_public": true}).Decode(&post)
-	return &post, err
-}
-
 func GetUserPosts(userID string) ([]*Post, error) {
 	cursor, err := database.Collection("posts").Find(context.Background(), bson.M{"user_id": userID}, options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}}))
 	if err != nil {

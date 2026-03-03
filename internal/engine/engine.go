@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"html/template"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/iamanishx/xserve/internal/storage"
 	"github.com/yuin/goldmark"
@@ -46,10 +48,16 @@ var r2Client *storage.R2Client
 func InitStorage() {
 	client, err := storage.NewR2Client()
 	if err != nil {
+		log.Printf("R2 initialization failed: %v (falling back to local disk)", err)
 		r2Client = nil
 		return
 	}
 	r2Client = client
+	log.Println("R2 storage initialized successfully")
+}
+
+func r2Context() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 30*time.Second)
 }
 
 func BuildSite(userID string, files map[string][]byte) error {
@@ -107,10 +115,13 @@ func BuildSite(userID string, files map[string][]byte) error {
 			}
 
 			if useR2 {
-				if err := r2Client.Upload(context.Background(), key, buf2.Bytes(), "text/html"); err != nil {
+				ctx, cancel := r2Context()
+				if err := r2Client.Upload(ctx, key, buf2.Bytes(), "text/html"); err != nil {
+					cancel()
 					errChan <- err
 					return
 				}
+				cancel()
 			} else {
 				f, err := os.Create(filepath.Join(outDir, outName))
 				if err != nil {
@@ -152,7 +163,9 @@ func BuildSite(userID string, files map[string][]byte) error {
 	indexKey := outDir + "/index.html"
 
 	if useR2 {
-		return r2Client.Upload(context.Background(), indexKey, []byte(indexHTML), "text/html")
+		ctx, cancel := r2Context()
+		defer cancel()
+		return r2Client.Upload(ctx, indexKey, []byte(indexHTML), "text/html")
 	}
 
 	return os.WriteFile(filepath.Join(outDir, "index.html"), []byte(indexHTML), 0644)
@@ -210,7 +223,9 @@ blockquote{border-left:4px solid #ddd;margin:1rem 0;padding-left:1rem;color:#666
 	}
 
 	key := "sites/" + userID + "/" + slug + ".html"
-	return r2Client.Upload(context.Background(), key, buf.Bytes(), "text/html")
+	ctx, cancel := r2Context()
+	defer cancel()
+	return r2Client.Upload(ctx, key, buf.Bytes(), "text/html")
 }
 
 func buildPostLocalHTML(userID, slug, title, htmlContent string) error {

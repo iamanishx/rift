@@ -75,7 +75,7 @@ func Now() time.Time {
 func RenderMarkdown(content string) template.HTML {
 	var buf strings.Builder
 	if err := md.Convert([]byte(content), &buf); err != nil {
-		return template.HTML(content)
+		return template.HTML(template.HTMLEscapeString(content))
 	}
 	return template.HTML(buf.String())
 }
@@ -117,7 +117,8 @@ func BlogIndex(c *gin.Context) {
 
 	posts, err := db.GetPublicPosts(user.ID)
 	if err != nil {
-		posts = []*db.Post{}
+		c.String(500, "Internal server error")
+		return
 	}
 
 	data := BlogIndexData{
@@ -144,13 +145,21 @@ func BlogPost(c *gin.Context) {
 		return
 	}
 
-	content := renderMarkdown(post.Content)
+	content := RenderMarkdown(post.Content)
 
-	scheme := "https"
-	if c.Request.TLS == nil {
-		scheme = "http"
+	scheme := c.Request.Header.Get("X-Forwarded-Proto")
+	if scheme == "" {
+		if c.Request.TLS != nil {
+			scheme = "https"
+		} else {
+			scheme = "http"
+		}
 	}
-	fullURL := scheme + "://" + c.Request.Host + "/" + user.ID + "/" + post.Slug
+	host := c.Request.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = c.Request.Host
+	}
+	fullURL := scheme + "://" + host + "/" + user.ID + "/" + post.Slug
 
 	data := BlogPostData{
 		User:    user,
@@ -172,7 +181,11 @@ func BlogPostPreview(c *gin.Context) {
 		return
 	}
 
-	user, _ := db.GetUser(uid)
+	user, err := db.GetUser(uid)
+	if err != nil {
+		c.String(404, "User not found")
+		return
+	}
 	content := RenderMarkdown(post.Content)
 
 	data := BlogPostData{
