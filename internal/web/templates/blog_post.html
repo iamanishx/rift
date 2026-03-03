@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Post.Title }} - {{ .User.Name }}</title>
+    <meta name="description" content="{{ .Post.Title }}">
+    <meta property="og:title" content="{{ .Post.Title }}">
+    <meta property="og:type" content="article">
+    <meta property="og:author" content="{{ .User.Name }}">
+    <meta property="twitter:card" content="summary_large_image">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #1a1a1a;
+            --fg-light: #666;
+            --accent: #2563eb;
+            --accent-light: #eff6ff;
+            --border: #e5e5e5;
+            --code-bg: #1e1e1e;
+            --code-fg: #d4d4d4;
+            --inline-code-bg: #f4f4f5;
+            --blockquote-border: #d1d5db;
+            --table-border: #e5e5e5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            line-height: 1.8;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--fg-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+        }
+
+        article {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.75rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            color: var(--fg-light);
+            font-size: 0.9rem;
+        }
+
+        .meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .content {
+            font-size: 1.1rem;
+        }
+
+        .content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 2.5rem 0 1rem;
+            letter-spacing: -0.01em;
+        }
+
+        .content h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin: 2rem 0 0.75rem;
+        }
+
+        .content p {
+            margin: 1.25rem 0;
+        }
+
+        .content a {
+            color: var(--accent);
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+            transition: opacity 0.2s;
+        }
+
+        .content a:hover {
+            opacity: 0.8;
+        }
+
+        .content strong {
+            font-weight: 600;
+        }
+
+        .content em {
+            font-style: italic;
+        }
+
+        .content ul, .content ol {
+            margin: 1.25rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content li {
+            margin: 0.5rem 0;
+        }
+
+        .content li::marker {
+            color: var(--accent);
+        }
+
+        .content code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            background: var(--inline-code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        .content pre {
+            background: var(--code-bg);
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .content pre code {
+            display: block;
+            padding: 1.25rem 1.5rem;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            background: none;
+            color: var(--code-fg);
+            border-radius: 0;
+        }
+
+        .content blockquote {
+            border-left: 4px solid var(--accent);
+            background: var(--accent-light);
+            margin: 1.5rem 0;
+            padding: 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: var(--fg-light);
+        }
+
+        .content blockquote p {
+            margin: 0;
+        }
+
+        .content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .content hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 2.5rem 0;
+        }
+
+        .content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        .content th, .content td {
+            border: 1px solid var(--table-border);
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+
+        .content th {
+            background: var(--inline-code-bg);
+            font-weight: 600;
+        }
+
+        .content tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .content input[type="checkbox"] {
+            margin-right: 0.5rem;
+            accent-color: var(--accent);
+        }
+
+        .content .task-list-item {
+            list-style: none;
+            margin-left: -1.5rem;
+        }
+
+        footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .author-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+        }
+
+        .author-info {
+            font-size: 0.9rem;
+        }
+
+        .author-name {
+            font-weight: 600;
+        }
+
+        .author-date {
+            color: var(--fg-light);
+            font-size: 0.8rem;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            color: var(--fg);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .share-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 2rem; }
+            .content { font-size: 1rem; }
+            .content pre { border-radius: 8px; }
+            .content pre code { padding: 1rem; font-size: 0.8rem; }
+            footer { flex-direction: column; text-align: center; }
+            .author { justify-content: center; }
+        }
+
+        ::selection {
+            background: var(--accent-light);
+            color: var(--fg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/{{ .User.ID }}" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back to all posts
+        </a>
+
+        <article>
+            <header>
+                <h1>{{ .Post.Title }}</h1>
+                <div class="meta">
+                    <span class="meta-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {{ .Post.CreatedAt.Format "January 2, 2006" }}
+                    </span>
+                    <span class="meta-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {{ .Post.Content | calcReadTime }} min read
+                    </span>
+                </div>
+            </header>
+
+            <div class="content">
+                {{ .Content }}
+            </div>
+        </article>
+
+        <footer>
+            <div class="author">
+                {{ if .User.AvatarURL }}
+                <img src="{{ .User.AvatarURL }}" alt="{{ .User.Name }}" class="author-avatar">
+                {{ end }}
+                <div class="author-info">
+                    <div class="author-name">{{ .User.Name }}</div>
+                    <div class="author-date">Published on {{ .Post.CreatedAt.Format "January 2, 2006" }}</div>
+                </div>
+            </div>
+            <div class="share-buttons">
+                <a href="https://twitter.com/intent/tweet?text={{ .Post.Title | urlquery }}&url={{ .FullURL | urlquery }}" target="_blank" rel="noopener noreferrer" class="share-btn">Share on Twitter</a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ .FullURL | urlquery }}" target="_blank" rel="noopener noreferrer" class="share-btn">Share on LinkedIn</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
