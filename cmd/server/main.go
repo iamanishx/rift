@@ -25,9 +25,9 @@ func main() {
 	r := gin.Default()
 
 	funcs := template.FuncMap{
-		"now":          web.Now,
-		"calcReadTime": web.CalcReadTime,
-		"truncate":     web.Truncate,
+		"now":            web.Now,
+		"calcReadTime":   web.CalcReadTime,
+		"truncate":       web.Truncate,
 		"renderMarkdown": web.RenderMarkdown,
 	}
 	r.SetFuncMap(funcs)
@@ -42,6 +42,8 @@ func main() {
 	r.GET("/auth/google", web.AuthLogin)
 	r.GET("/auth/google/callback", web.AuthCallback)
 
+	r.GET("/editor", web.Editor)
+	r.GET("/editor/:id", web.Editor)
 	r.GET("/:userID", web.BlogIndex)
 	r.GET("/:userID/:slug", web.BlogPost)
 
@@ -51,6 +53,13 @@ func main() {
 		authorized.GET("/dashboard", web.Dashboard)
 		authorized.POST("/upload", web.Upload)
 		authorized.GET("/preview/:slug", web.BlogPostPreview)
+		authorized.POST("/api/drafts", web.CreateDraft)
+		authorized.GET("/api/drafts", web.GetDrafts)
+		authorized.GET("/api/drafts/:id", web.GetDraft)
+		authorized.PUT("/api/drafts/:id", web.UpdateDraft)
+		authorized.DELETE("/api/drafts/:id", web.DeleteDraft)
+		authorized.POST("/api/drafts/:id/publish", web.PublishDraft)
+		authorized.POST("/api/drafts/:id/upload-image", web.UploadDraftImage)
 
 		authorized.POST("/api/posts", web.CreatePost)
 		authorized.GET("/api/posts", web.GetPosts)

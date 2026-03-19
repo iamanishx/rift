@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor</title>
+  <style>
+    :root { --bg:#0b0f14; --panel:#111; --fg:#e8f0f7; --accent:#4dc3ff; }
+    html,body { height:100%; }
+    body { margin:0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+    .editor { display:flex; height:100%; gap:16px; padding: 16px; }
+    .pane { flex:1; min-width:0; display:flex; flex-direction:column; }
+    #md { width:100%; height: calc(100vh - 180px); resize: none; padding:12px; background:#0a111a; color:#e9f1f7; border:1px solid #222; border-radius:6px; }
+    #preview { padding:12px; overflow:auto; height: calc(100vh - 180px); background:#0b111a; border:1px solid #222; border-radius:6px; }
+    .toolbar { display:flex; gap:8px; padding:8px; border-bottom:1px solid #222; background:#0b111a; }
+    button { background: #1e90ff; color:white; border:0; padding:10px 14px; border-radius:6px; cursor:pointer; }
+    .drop { border:2px dashed #333; padding:20px; border-radius:6px; text-align:center; color:#aaa; margin:8px 0; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="toolbar">
+    <button id="newDraft">New Draft</button>
+    <button id="saveDraft">Save Draft</button>
+    <button id="publishDraft">Publish</button>
+  </div>
+  <div class="editor">
+    <div class="pane" style="min-width:50%">
+      <input id="title" placeholder="Draft Title" style="width:100%; padding:8px; border-radius:6px; border:1px solid #333;" />
+      <textarea id="md" placeholder="Write Markdown here..."></textarea>
+      <div class="drop" id="dropzone">Drag & drop image here or click to select</div>
+      <input type="file" id="imageInput" accept="image/*" style="display:none;" />
+      <div id="status" style="margin-top:6px; font-size:12px; color:#aaa;"></div>
+    </div>
+    <div class="pane" style="background:#0b111a; border-radius:6px; padding:8px; border:1px solid #222; overflow:auto;">
+      <div id="preview" aria-label="Markdown Preview"></div>
+    </div>
+  </div>
+
+  <script>
+    const titleEl = document.getElementById('title');
+    const mdEl = document.getElementById('md');
+    const previewEl = document.getElementById('preview');
+    const newDraftBtn = document.getElementById('newDraft');
+    const saveBtn = document.getElementById('saveDraft');
+    const publishBtn = document.getElementById('publishDraft');
+    const dropzone = document.getElementById('dropzone');
+    const imageInput = document.getElementById('imageInput');
+    let draftId = localStorage.getItem('draft_id');
+    let autosaveTimer = null;
+
+    // render preview
+    function render() {
+      previewEl.innerHTML = marked.parse(mdEl.value || '');
+    }
+
+    // initial render
+    mdEl.addEventListener('input', () => {
+      render();
+      scheduleAutosave();
+    });
+    titleEl.addEventListener('input', render);
+    function scheduleAutosave() {
+      if (autosaveTimer) clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(() => saveDraft(), 500);
+    }
+
+    // fetch existing draft if id provided via URL
+    function loadDraft(did){
+      if(!did) return;
+      fetch('/api/drafts/' + did)
+        .then(res => res.json())
+        .then(d => {
+          if (d && d.Title) titleEl.value = d.Title;
+          if (d && d.Content) mdEl.value = d.Content, render();
+        });
+    }
+    // basic new draft load is blank; later publish will create
+
+    // New Draft handler
+    newDraftBtn.addEventListener('click', () => {
+      titleEl.value = '';
+      mdEl.value = '';
+      render();
+      draftId = null;
+      localStorage.removeItem('draft_id');
+      document.getElementById('status').textContent = 'New draft started';
+    });
+
+    // Save draft
+    function saveDraft(){
+      const payload = { title: titleEl.value, content: mdEl.value };
+      const method = draftId ? 'PUT' : 'POST';
+      const url = draftId ? '/api/drafts/' + draftId : '/api/drafts';
+      fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        .then(r => r.json())
+        .then(d => {
+          if (d && d._id) {
+            draftId = d._id;
+            localStorage.setItem('draft_id', draftId);
+          }
+          document.getElementById('status').textContent = 'Draft saved';
+        })
+        .catch(() => {
+          document.getElementById('status').textContent = 'Draft save failed';
+        });
+    }
+
+    saveBtn.addEventListener('click', saveDraft);
+
+    // Publish draft (create post)
+    publishBtn.addEventListener('click', () => {
+      if (!draftId) {
+        saveDraft();
+      }
+      fetch('/api/drafts/' + (draftId || '' ) + '/publish', { method: 'POST' })
+        .then(r => r.json())
+        .then(p => {
+          window.location.href = '/' + (p?.UserID || '');
+        })
+        .catch(() => alert('Publish failed'));
+    });
+
+    // Drag and drop image upload (to server)
+    draftId && dropzone.addEventListener('click', () => imageInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#4dc3ff'; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#333'; });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = '#333';
+      const f = e.dataTransfer.files[0];
+      if (f && draftId) {
+        uploadImage(draftId, f);
+      } else {
+        // save draft first then upload
+        saveDraft();
+        // after short delay, try again
+        setTimeout(() => {
+          if (draftId) uploadImage(draftId, f);
+        }, 600);
+      }
+    });
+    imageInput.addEventListener('change', () => {
+      const f = imageInput.files[0];
+      if (f && draftId) uploadImage(draftId, f);
+    });
+
+    function uploadImage(did, file){
+      const form = new FormData();
+      form.append('image', file);
+      fetch('/api/drafts/' + did + '/upload-image', { method: 'POST', body: form })
+        .then(r => r.json())
+        .then(res => {
+          if (res?.url) {
+            // insert markdown image syntax
+            const cm = '![](' + res.url + ')';
+            mdEl.value += "\n" + cm;
+            render();
+          }
+        });
+    }
+
+    // initial render
+    render();
+  </script>
+</body>
+</html>
